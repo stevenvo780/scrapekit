@@ -46,9 +46,11 @@ _engine_cache: dict = {}
 
 def _normalize_db_url(db_url: str) -> str:
     """
-    Convierte cadenas de conexion Neon a formato asyncpg.
-    - postgres:// y postgresql:// -> postgresql+asyncpg://
-    - Elimina channel_binding=require (no soportado por asyncpg)
+    Convierte cadenas de conexion Neon/Postgres a formato asyncpg.
+
+    asyncpg (via SQLAlchemy) no acepta query params estandar de libpq como
+    sslmode= o channel_binding=. Las conexiones SSL se pasan via connect_args.
+    Esta funcion limpia el URL y devuelve (url_limpio, connect_args).
     """
     from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
 
@@ -58,20 +60,47 @@ def _normalize_db_url(db_url: str) -> str:
     elif url.startswith("postgresql://") and "+asyncpg" not in url:
         url = "postgresql+asyncpg://" + url[len("postgresql://"):]
 
-    # Eliminar parametros no soportados por asyncpg
+    # Quitar parametros que asyncpg no acepta como query string
     parsed = urlparse(url)
     if parsed.query:
         params = parse_qs(parsed.query, keep_blank_values=True)
         params.pop("channel_binding", None)
+        params.pop("sslmode", None)      # asyncpg usa ssl= en connect_args
+        params.pop("sslcert", None)
+        params.pop("sslkey", None)
+        params.pop("sslrootcert", None)
         new_query = urlencode({k: v[0] for k, v in params.items()})
         url = urlunparse(parsed._replace(query=new_query))
 
     return url
 
 
+def _get_connect_args(db_url: str) -> dict:
+    """Extrae SSL mode del URL original y lo convierte a connect_args de asyncpg.
+
+    sslmode=require -> ssl context con verificacion completa (Neon tiene cert valido).
+    sslmode=disable -> sin SSL.
+    Todo lo demas -> verificacion completa por defecto (ssl.create_default_context()).
+    """
+    from urllib.parse import urlparse, parse_qs
+    import ssl
+
+    parsed = urlparse(db_url)
+    params = parse_qs(parsed.query)
+    sslmode = params.get("sslmode", [None])[0]
+
+    if sslmode == "disable":
+        return {}
+
+    # require / verify-ca / verify-full / None -> SSL con verificacion del CA
+    ctx = ssl.create_default_context()
+    return {"ssl": ctx}
+
+
 def _get_engine(db_url: str):
     if db_url not in _engine_cache:
         url = _normalize_db_url(db_url)
+        connect_args = _get_connect_args(db_url)
         _engine_cache[db_url] = create_async_engine(
             url,
             echo=False,
@@ -79,6 +108,7 @@ def _get_engine(db_url: str):
             pool_pre_ping=True,
             pool_size=2,
             max_overflow=2,
+            connect_args=connect_args,
         )
     return _engine_cache[db_url]
 
