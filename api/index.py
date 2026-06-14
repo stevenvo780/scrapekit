@@ -90,11 +90,24 @@ if _STATIC_DIR.exists():
 
 
 # ---------------------------------------------------------------------------
-# Startup: crear tablas si no existen
+# Startup: crear tablas si no existen.
+# En Vercel (serverless) el startup corre en cada cold-start pero la conexion
+# falla si hay error de URL, asi que usamos un flag para evitar repeticion.
 # ---------------------------------------------------------------------------
+_db_initialized = False
+
+
 @app.on_event("startup")
 async def startup_event() -> None:
-    await init_db(settings)
+    global _db_initialized
+    if not _db_initialized:
+        try:
+            await init_db(settings)
+            _db_initialized = True
+        except Exception as exc:
+            # Log but don't crash startup — read-only endpoints may still work
+            import logging
+            logging.getLogger("scrapekit").warning("DB init skipped: %s", exc)
 
 
 # ---------------------------------------------------------------------------

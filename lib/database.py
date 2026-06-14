@@ -44,15 +44,42 @@ class DocumentSearchResult:
 _engine_cache: dict = {}
 
 
+def _normalize_db_url(db_url: str) -> str:
+    """
+    Convierte cadenas de conexion Neon a formato asyncpg.
+    - postgres:// y postgresql:// -> postgresql+asyncpg://
+    - Elimina channel_binding=require (no soportado por asyncpg)
+    """
+    from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
+
+    url = db_url
+    if url.startswith("postgres://"):
+        url = "postgresql+asyncpg://" + url[len("postgres://"):]
+    elif url.startswith("postgresql://") and "+asyncpg" not in url:
+        url = "postgresql+asyncpg://" + url[len("postgresql://"):]
+
+    # Eliminar parametros no soportados por asyncpg
+    parsed = urlparse(url)
+    if parsed.query:
+        params = parse_qs(parsed.query, keep_blank_values=True)
+        params.pop("channel_binding", None)
+        new_query = urlencode({k: v[0] for k, v in params.items()})
+        url = urlunparse(parsed._replace(query=new_query))
+
+    return url
+
+
 def _get_engine(db_url: str):
     if db_url not in _engine_cache:
-        # Convertir postgres:// -> postgresql+asyncpg://
-        url = db_url
-        if url.startswith("postgres://"):
-            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
-        elif url.startswith("postgresql://") and "+asyncpg" not in url:
-            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
-        _engine_cache[db_url] = create_async_engine(url, echo=False, future=True)
+        url = _normalize_db_url(db_url)
+        _engine_cache[db_url] = create_async_engine(
+            url,
+            echo=False,
+            future=True,
+            pool_pre_ping=True,
+            pool_size=2,
+            max_overflow=2,
+        )
     return _engine_cache[db_url]
 
 
