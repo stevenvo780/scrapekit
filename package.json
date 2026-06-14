@@ -1,0 +1,11 @@
+{
+  "name": "scrapekit",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:contrast": "node scripts/contrast-check.mjs"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^22.0.0"
+  }
+}

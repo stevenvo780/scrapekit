@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ScrapeKit Colombia — Preview</title>
+    <link rel="stylesheet" href="static/brand.css" />
+    <link rel="stylesheet" href="static/main.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <h1>ScrapeKit Colombia</h1>
+        <p>Indexador de documentos legislativos PDF - Camara, Senado y mas.</p>
+      </div>
+    </header>
+    <main class="container">
+
+      <section class="card">
+        <h2>Procesar nuevo documento</h2>
+        <form id="process-form" class="form">
+          <label for="source-select">Fuente</label>
+          <select id="source-select" name="source_key">
+            <option value="colombia_camara">Colombia — Cámara de Representantes</option>
+            <option value="colombia_senado">Colombia — Senado de la República</option>
+          </select>
+          <label for="document-id">ID de documento</label>
+          <div class="form-row">
+            <input
+              id="document-id"
+              name="document_id"
+              type="text"
+              placeholder="Ej. 234993"
+            />
+            <button type="submit">Procesar</button>
+          </div>
+          <label for="api-key-input">API Key</label>
+          <input
+            id="api-key-input"
+            type="password"
+            placeholder="X-API-Key"
+          />
+          <p class="help">Introduce el ID del documento y la API Key para indexarlo.</p>
+          <p id="form-status" class="status"></p>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Buscar en documentos</h2>
+        <div class="form">
+          <label for="source-filter">Filtrar por fuente</label>
+          <select id="source-filter">
+            <option value="">Todas las fuentes</option>
+            <option value="colombia_camara">Colombia — Cámara</option>
+          </select>
+          <label for="search-input">Palabra o frase</label>
+          <input
+            id="search-input"
+            type="search"
+            placeholder="Ej. presupuesto nacional"
+            autocomplete="off"
+          />
+          <p class="help">Escribe al menos dos caracteres para buscar en todos los documentos indexados.</p>
+        </div>
+        <p id="search-feedback" class="status"></p>
+        <ul id="search-results" class="search-results">
+          <li class="search-result">
+            <a class="search-result__title" href="#">Ley 2294 de 2023 — Plan Nacional de Desarrollo</a>
+            <div class="search-result__meta">
+              <span>colombia_camara</span>
+              <span>Col</span>
+              <span>3 coincidencias</span>
+            </div>
+            <p class="search-result__snippet">
+              ...el <mark>presupuesto nacional</mark> para el cuatrienio se distribuye en los sectores
+              de infraestructura, salud y educación...
+            </p>
+          </li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Documentos indexados</h2>
+        <div class="table-container">
+          <table class="table" id="documents-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fuente</th>
+                <th>Pais</th>
+                <th>Archivo</th>
+                <th>Paginas</th>
+                <th>Procesado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>234993</td>
+                <td>colombia_camara</td>
+                <td>Colombia</td>
+                <td>doc_234993.pdf</td>
+                <td>42</td>
+                <td>2026-06-14 10:30</td>
+                <td><a class="button-link" href="#">Ver</a></td>
+              </tr>
+              <tr>
+                <td>198201</td>
+                <td>colombia_senado</td>
+                <td>Colombia</td>
+                <td>doc_198201.pdf</td>
+                <td>18</td>
+                <td>2026-06-13 15:20</td>
+                <td><a class="button-link" href="#">Ver</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+    <footer class="footer">
+      <div class="container">
+        <small>&copy; 2026 ScrapeKit Colombia &mdash; stevenvo780</small>
+      </div>
+    </footer>
+  </body>
+</html>

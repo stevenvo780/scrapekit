@@ -1,0 +1,24 @@
+/* =====================================================================
+   ScrapeKit Colombia — Brand tokens (light mode)
+   Fuente de verdad: docs/05-activos/brand-tokens.md
+   ===================================================================== */
+
+[data-theme="light"] {
+  --bg:             #FBFAF6;
+  --surface:        #FFFFFF;
+  --surface-2:      #F4F1E9;
+  --border:         #E5DFD2;
+  --text:           #14202E;
+  --text-muted:     #51606F;
+  --primary:        #0F766E;
+  --primary-strong: #115E59;
+  --on-primary:     #FFFFFF;
+  --accent:         #B5791A;
+  --accent-strong:  #9A6712;
+  --on-accent:      #FFFFFF;
+  --link:           #0F766E;
+  --ring:           #0F766E;
+  --success:        #0F766E;
+  --warning:        #92610A;
+  --danger:         #B42318;
+}
