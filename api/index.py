@@ -125,11 +125,18 @@ def _render(template_name: str, **ctx) -> str:
 # ---------------------------------------------------------------------------
 # Healthcheck
 # ---------------------------------------------------------------------------
+_FAVICON_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+    '<circle cx="16" cy="16" r="16" fill="#0F766E"/>'
+    '<text x="16" y="22" font-family="serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#2DD4BF">S</text>'
+    "</svg>"
+)
+
+
 @app.get("/favicon.svg", include_in_schema=False)
 async def favicon():
-    from fastapi.responses import FileResponse
-    favicon_path = _ROOT / "public" / "favicon.svg"
-    return FileResponse(str(favicon_path), media_type="image/svg+xml")
+    from fastapi.responses import Response
+    return Response(content=_FAVICON_SVG, media_type="image/svg+xml")
 
 
 @app.get("/health", tags=["meta"])
