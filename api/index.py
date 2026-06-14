@@ -130,6 +130,17 @@ async def healthcheck() -> dict:
     return {"status": "ok", "service": "scrapekit-colombia"}
 
 
+@app.get("/debug/env", tags=["meta"])
+async def debug_env() -> dict:
+    """Endpoint temporal para verificar que las env vars llegan correctamente. No expone secretos."""
+    return {
+        "database_url_set": bool(settings.database_url),
+        "database_url_prefix": settings.database_url[:30] if settings.database_url else "",
+        "api_key_set": settings.api_key != "dev-insecure-key",
+        "default_source": settings.default_source,
+    }
+
+
 # ---------------------------------------------------------------------------
 # API: sources
 # ---------------------------------------------------------------------------

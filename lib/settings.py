@@ -8,38 +8,40 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Configuracion central de ScrapeKit Colombia."""
+    """
+    Configuracion central de ScrapeKit Colombia.
 
-    # Postgres Neon
+    Env vars leidas (con prefijo SCRAPEKIT_):
+      SCRAPEKIT_DATABASE_URL  - Neon pooled URL (runtime)
+      SCRAPEKIT_DIRECT_URL    - Neon direct URL (migraciones)
+      SCRAPEKIT_API_KEY       - API key para endpoints de escritura
+      SCRAPEKIT_DEFAULT_SOURCE - Adaptador por defecto
+    """
+
+    # env_prefix hace que pydantic-settings lea SCRAPEKIT_DATABASE_URL
+    # como el campo `database_url`, etc.
     database_url: str = Field(
-        ...,
+        default="",
         description="Cadena de conexion pooled (asyncpg) para runtime.",
-        alias="SCRAPEKIT_DATABASE_URL",
     )
     direct_url: Optional[str] = Field(
-        None,
+        default=None,
         description="Cadena de conexion directa (sin pool) para migraciones DDL.",
-        alias="SCRAPEKIT_DIRECT_URL",
     )
-
-    # Autenticacion basica
     api_key: str = Field(
-        "dev-insecure-key",
+        default="dev-insecure-key",
         description="API key requerida en cabecera X-API-Key para endpoints de escritura.",
-        alias="SCRAPEKIT_API_KEY",
     )
-
-    # Fuente predeterminada
     default_source: str = Field(
-        "colombia_camara",
+        default="colombia_camara",
         description="Adaptador fuente por defecto.",
-        alias="SCRAPEKIT_DEFAULT_SOURCE",
     )
 
     model_config = SettingsConfigDict(
+        env_prefix="SCRAPEKIT_",
         env_file=".env.local",
         env_file_encoding="utf-8",
-        populate_by_name=True,
+        case_sensitive=False,
     )
 
 
