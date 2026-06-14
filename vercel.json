@@ -19,9 +19,5 @@
       "dest": "/api/index.py"
     }
   ],
-  "env": {
-    "SCRAPEKIT_DATABASE_URL": "@scrapekit_database_url",
-    "SCRAPEKIT_DIRECT_URL": "@scrapekit_direct_url",
-    "SCRAPEKIT_API_KEY": "@scrapekit_api_key"
-  }
+  "env": {}
 }
