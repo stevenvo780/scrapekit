@@ -130,20 +130,6 @@ async def healthcheck() -> dict:
     return {"status": "ok", "service": "scrapekit-colombia"}
 
 
-@app.get("/debug/env", tags=["meta"])
-async def debug_env() -> dict:
-    """Endpoint temporal para verificar que las env vars llegan correctamente. No expone secretos."""
-    import os
-    raw = os.environ.get("SCRAPEKIT_DATABASE_URL", "")
-    return {
-        "database_url_set": bool(settings.database_url),
-        "database_url_prefix": settings.database_url[:30] if settings.database_url else "",
-        "raw_env_set": bool(raw),
-        "raw_env_prefix": raw[:30] if raw else "",
-        "api_key_set": settings.api_key != "dev-insecure-key",
-        "default_source": settings.default_source,
-        "all_scrapekit_keys": [k for k in os.environ if "SCRAPEKIT" in k],
-    }
 
 
 # ---------------------------------------------------------------------------
