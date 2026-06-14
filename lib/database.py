@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import AsyncIterator, List, Optional
 
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -162,6 +162,19 @@ class Database:
         async with AsyncSession(self._engine, expire_on_commit=False) as session:
             yield session
 
+    @staticmethod
+    def _naive_utc(dt: datetime) -> datetime:
+        """Garantiza datetime tz-naive en UTC.
+
+        Las columnas son TIMESTAMP WITHOUT TIME ZONE; asyncpg falla con
+        "can't subtract offset-naive and offset-aware datetimes" si recibe un
+        datetime timezone-aware (p.ej. del header HTTP Date). Normalizamos aqui
+        como defensa adicional.
+        """
+        if dt.tzinfo is not None:
+            return dt.astimezone(timezone.utc).replace(tzinfo=None)
+        return dt
+
     async def upsert_report(self, report: ExtractionReport, source_key: str) -> Document:
         from .adapters import get_adapter
         adapter = get_adapter(source_key)
@@ -175,8 +188,8 @@ class Database:
             doc.source_url = report.downloaded.source_url
             doc.checksum_sha256 = report.downloaded.checksum_sha256
             doc.content_length = report.downloaded.content_length
-            doc.downloaded_at = report.downloaded.downloaded_at
-            doc.processed_at = report.extraction.processed_at
+            doc.downloaded_at = self._naive_utc(report.downloaded.downloaded_at)
+            doc.processed_at = self._naive_utc(report.extraction.processed_at)
             doc.plain_text = report.extraction.plain_text
             doc.heading_count = len(report.extraction.headings)
             doc.total_pages = int(report.extraction.metadata.get("total_pages", "0"))

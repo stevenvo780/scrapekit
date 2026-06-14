@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from typing import Optional
 
@@ -63,6 +63,12 @@ class DocumentDownloader:
             try:
                 parsed = parsedate_to_datetime(header_date)
                 if parsed:
+                    # El header HTTP Date es timezone-aware; la columna es
+                    # TIMESTAMP WITHOUT TIME ZONE, y asyncpg rechaza mezclar
+                    # datetimes naive/aware ("can't subtract offset-naive and
+                    # offset-aware datetimes"). Convertir a UTC naive.
+                    if parsed.tzinfo is not None:
+                        parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
                     downloaded_at = parsed
             except (TypeError, ValueError):
                 pass
