@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import AsyncIterator, List, Optional
 
 from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.pool import NullPool
 from sqlmodel import Field, SQLModel, select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -101,13 +102,22 @@ def _get_engine(db_url: str):
     if db_url not in _engine_cache:
         url = _normalize_db_url(db_url)
         connect_args = _get_connect_args(db_url)
+
+        # --- Serverless (Vercel + Mangum) friendly engine -------------------
+        # 1. NullPool: abrir/cerrar la conexion por uso. Las funciones serverless
+        #    son efimeras y un pool de larga vida termina con conexiones atadas a
+        #    un event loop ya cerrado entre invocaciones del mismo Lambda caliente,
+        #    lo que produce errores de greenlet/await_only de SQLAlchemy async.
+        # 2. statement_cache_size=0 / prepared_statement_cache_size=0: asyncpg usa
+        #    prepared statements con nombre; con la URL pooled de Neon (pgbouncer en
+        #    modo transaction) esto puede colisionar. Desactivar el cache es la
+        #    configuracion segura y recomendada para pgbouncer.
+        connect_args = {**connect_args, "statement_cache_size": 0}
         _engine_cache[db_url] = create_async_engine(
             url,
             echo=False,
             future=True,
-            pool_pre_ping=True,
-            pool_size=2,
-            max_overflow=2,
+            poolclass=NullPool,
             connect_args=connect_args,
         )
     return _engine_cache[db_url]
@@ -121,6 +131,23 @@ async def init_db(settings: Optional[Settings] = None) -> None:
         await conn.run_sync(SQLModel.metadata.create_all)
 
 
+_schema_ready: set = set()
+
+
+async def ensure_schema(settings: Optional[Settings] = None) -> None:
+    """Crea las tablas de forma perezosa e idempotente.
+
+    En Vercel con Mangum(lifespan="off") el evento startup NO se ejecuta, asi que
+    la creacion de tablas debe dispararse desde el primer request de escritura.
+    Solo corre una vez por proceso caliente.
+    """
+    s = settings or get_settings()
+    if s.database_url in _schema_ready:
+        return
+    await init_db(s)
+    _schema_ready.add(s.database_url)
+
+
 class Database:
     def __init__(self, settings: Optional[Settings] = None) -> None:
         self.settings = settings or get_settings()
@@ -128,13 +155,17 @@ class Database:
 
     @asynccontextmanager
     async def session(self) -> AsyncIterator[AsyncSession]:
-        async with AsyncSession(self._engine) as session:
+        # expire_on_commit=False: tras commit/cierre los objetos ORM conservan sus
+        # atributos cargados. Sin esto, leer un atributo despues de cerrar la sesion
+        # dispara IO perezosa que bajo SQLAlchemy-async + Mangum falla con
+        # "greenlet_spawn has not been called; can't call await_only()".
+        async with AsyncSession(self._engine, expire_on_commit=False) as session:
             yield session
 
     async def upsert_report(self, report: ExtractionReport, source_key: str) -> Document:
         from .adapters import get_adapter
         adapter = get_adapter(source_key)
-        async with AsyncSession(self._engine) as session:
+        async with AsyncSession(self._engine, expire_on_commit=False) as session:
             stmt = select(Document).where(Document.document_id == report.downloaded.document_id)
             result = await session.exec(stmt)
             doc = result.one_or_none()
@@ -153,11 +184,14 @@ class Database:
             doc.institution = adapter.institution
             session.add(doc)
             await session.commit()
+            # Con expire_on_commit=False los atributos siguen disponibles tras commit;
+            # un refresh explicito recarga la fila (incluye id autogenerado) de forma
+            # segura mientras la sesion aun esta abierta.
             await session.refresh(doc)
             return doc
 
     async def get_document(self, document_id: str) -> Optional[Document]:
-        async with AsyncSession(self._engine) as session:
+        async with AsyncSession(self._engine, expire_on_commit=False) as session:
             stmt = select(Document).where(Document.document_id == document_id)
             result = await session.exec(stmt)
             return result.one_or_none()
@@ -168,7 +202,7 @@ class Database:
         limit: int = 100,
         offset: int = 0,
     ) -> List[Document]:
-        async with AsyncSession(self._engine) as session:
+        async with AsyncSession(self._engine, expire_on_commit=False) as session:
             stmt = select(Document)
             if source_key:
                 stmt = stmt.where(Document.source_key == source_key)
@@ -186,7 +220,8 @@ class Database:
         if not cleaned:
             return []
         pattern = f"%{cleaned.lower()}%"
-        async with AsyncSession(self._engine) as session:
+        out: List[DocumentSearchResult] = []
+        async with AsyncSession(self._engine, expire_on_commit=False) as session:
             stmt = (
                 select(Document)
                 .where(func.lower(Document.plain_text).like(pattern))
@@ -197,10 +232,11 @@ class Database:
             result = await session.exec(stmt)
             documents = list(result.all())
 
-        out: List[DocumentSearchResult] = []
-        for doc in documents:
-            plain = doc.plain_text or ""
-            snippet = build_snippet(plain, cleaned)
-            matches = plain.lower().count(cleaned.lower())
-            out.append(DocumentSearchResult(document=doc, snippet=snippet, matches=matches))
+            # Leer atributos DENTRO del contexto de sesion: evita IO perezosa sobre
+            # objetos detached/expired (causa del error greenlet_spawn/await_only).
+            for doc in documents:
+                plain = doc.plain_text or ""
+                snippet = build_snippet(plain, cleaned)
+                matches = plain.lower().count(cleaned.lower())
+                out.append(DocumentSearchResult(document=doc, snippet=snippet, matches=matches))
         return out

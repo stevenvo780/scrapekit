@@ -38,7 +38,7 @@ from jinja2 import Environment, FileSystemLoader
 from mangum import Mangum
 
 from lib.adapters import list_adapters, get_adapter, ADAPTERS
-from lib.database import Database, Document, init_db
+from lib.database import Database, Document, ensure_schema, init_db
 from lib.exceptions import DocumentNotFoundError, DownloadError, EmptyDocumentError, ParsingError
 from lib.pipeline import ProcessingPipeline
 from lib.schemas import DocumentRead, ProcessRequest, SearchHit, SourceInfo
@@ -191,6 +191,9 @@ async def process_document(
         get_adapter(source_key)  # valida antes de descargar
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+
+    # En serverless (lifespan="off") el startup no corre; aseguramos el esquema aqui.
+    await ensure_schema(settings)
 
     pipeline = ProcessingPipeline()
     try:
