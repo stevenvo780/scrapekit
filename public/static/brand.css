@@ -1,5 +1,5 @@
 /* =====================================================================
-   ScrapeKit Colombia — Brand tokens (light mode)
+   ScrapeKit Colombia — Brand tokens (light mode) — Cloud Atlas palette
    Fuente de verdad: docs/05-activos/brand-tokens.md
    ===================================================================== */
 
@@ -10,15 +10,15 @@
   --border:         #E5DFD2;
   --text:           #14202E;
   --text-muted:     #51606F;
-  --primary:        #0F766E;
-  --primary-strong: #115E59;
+  --primary:        #2f8478;
+  --primary-strong: #0f766e;
   --on-primary:     #FFFFFF;
-  --accent:         #B5791A;
-  --accent-strong:  #9A6712;
+  --accent:         #9A6712;
+  --accent-strong:  #7a4e0a;
   --on-accent:      #FFFFFF;
-  --link:           #0F766E;
-  --ring:           #0F766E;
-  --success:        #0F766E;
+  --link:           #2f8478;
+  --ring:           #43b5a6;
+  --success:        #2f8478;
   --warning:        #92610A;
   --danger:         #B42318;
 }

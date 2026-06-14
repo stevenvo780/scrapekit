@@ -60,7 +60,7 @@ body {
   padding: 1.5rem;
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 16px rgba(15, 118, 110, 0.08);
+  box-shadow: 0 4px 16px rgba(47, 132, 120, 0.08);
 }
 
 .card h2 {
@@ -130,7 +130,7 @@ body {
 .form button:hover {
   background: var(--primary);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(15, 118, 110, 0.25);
+  box-shadow: 0 6px 16px rgba(47, 132, 120, 0.25);
 }
 
 .form button:focus-visible {
