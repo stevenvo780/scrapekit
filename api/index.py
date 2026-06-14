@@ -125,6 +125,13 @@ def _render(template_name: str, **ctx) -> str:
 # ---------------------------------------------------------------------------
 # Healthcheck
 # ---------------------------------------------------------------------------
+@app.get("/favicon.svg", include_in_schema=False)
+async def favicon():
+    from fastapi.responses import FileResponse
+    favicon_path = _ROOT / "public" / "favicon.svg"
+    return FileResponse(str(favicon_path), media_type="image/svg+xml")
+
+
 @app.get("/health", tags=["meta"])
 async def healthcheck() -> dict:
     return {"status": "ok", "service": "scrapekit-colombia"}
