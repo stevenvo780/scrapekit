@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Documento {{ document.document_id }} - ScrapeKit Colombia{% endblock %}
+
+{% block content %}
+<a class="back-link" href="/">Volver al inicio</a>
+<section class="card">
+  <h2>Resumen</h2>
+  <dl class="summary">
+    <div>
+      <dt>ID</dt>
+      <dd>{{ document.document_id }}</dd>
+    </div>
+    <div>
+      <dt>Fuente</dt>
+      <dd>{{ document.source_key }}</dd>
+    </div>
+    <div>
+      <dt>Pais</dt>
+      <dd>{{ document.country }}</dd>
+    </div>
+    <div>
+      <dt>Institucion</dt>
+      <dd>{{ document.institution }}</dd>
+    </div>
+    <div>
+      <dt>Archivo original</dt>
+      <dd><a href="{{ document.source_url }}" target="_blank" rel="noopener">Descargar PDF</a></dd>
+    </div>
+    <div>
+      <dt>Archivo</dt>
+      <dd><code>{{ document.filename }}</code></dd>
+    </div>
+    <div>
+      <dt>Paginas</dt>
+      <dd>{{ document.total_pages }}</dd>
+    </div>
+    <div>
+      <dt>Encabezados</dt>
+      <dd>{{ document.heading_count }}</dd>
+    </div>
+    <div>
+      <dt>Descargado</dt>
+      <dd>{{ document.downloaded_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+    </div>
+    <div>
+      <dt>Procesado</dt>
+      <dd>{{ document.processed_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+    </div>
+  </dl>
+</section>
+
+<section class="card">
+  <h2>Contenido</h2>
+  <article class="document-content">
+    {% for line in document.plain_text.split("\n") %}
+    <p>{{ line }}</p>
+    {% endfor %}
+  </article>
+</section>
+{% endblock %}

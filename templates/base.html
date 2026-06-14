@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}ScrapeKit Colombia{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+    <link rel="stylesheet" href="/static/main.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <h1>ScrapeKit Colombia</h1>
+        <p>Indexador de documentos legislativos PDF - Camara, Senado y mas.</p>
+      </div>
+    </header>
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="footer">
+      <div class="container">
+        <small>&copy; {{ year }} ScrapeKit Colombia &mdash; stevenvo780</small>
+      </div>
+    </footer>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>
