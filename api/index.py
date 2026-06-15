@@ -72,8 +72,8 @@ def require_api_key(api_key: Optional[str] = Security(api_key_header)) -> str:
 # App
 # ---------------------------------------------------------------------------
 app = FastAPI(
-    title="ScrapeKit Colombia",
-    description="API para descargar e indexar documentos PDF legislativos de Colombia y otros paises.",
+    title="Nómos",
+    description="Scraping de documentos legales — API para descargar e indexar PDFs legislativos de Colombia y otros paises.",
     version="1.0.0",
 )
 

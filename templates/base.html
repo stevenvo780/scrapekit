@@ -3,13 +3,17 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Nómos — scraping de documentos legales. Indexador de PDFs legislativos de Colombia y otros paises. Parte de Mouseîon." />
+    <meta property="og:title" content="Nómos — scraping de documentos legales" />
+    <meta property="og:description" content="Indexador de PDFs legislativos de Colombia (Camara, Senado y mas). Parte del ecosistema Mouseîon." />
+    <meta property="og:type" content="website" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="shortcut icon" href="/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <title>{% block title %}ScrapeKit Colombia{% endblock %}</title>
+    <title>{% block title %}Nómos — scraping de documentos legales{% endblock %}</title>
     <style>
 /* =====================================================================
    ScrapeKit Colombia — Brand tokens (light mode) — Cloud Atlas palette
@@ -102,6 +106,16 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.wordmark-tag {
+  font-size: 0.68rem;
+  font-weight: 500;
+  font-family: "JetBrains Mono", monospace;
+  color: rgba(67,181,166,0.72);
+  letter-spacing: 0.04em;
+  margin-left: 0.15rem;
+  -webkit-text-fill-color: rgba(67,181,166,0.72);
 }
 
 /* --- Header ------------------------------------------------------------ */
@@ -515,14 +529,14 @@ body {
             <circle cx="32" cy="32" r="3" fill="url(#sv-core)"/>
             <circle cx="32" cy="32" r="6" fill="none" stroke="#f0c887" stroke-opacity="0.30" stroke-width="1"/>
           </svg>
-          <span>Steven Vallejo</span>
+          <span>Nómos</span><span class="wordmark-tag">Mouseîon</span>
         </a>
       </div>
     </div>
     <header class="header">
       <div class="container">
-        <h1>ScrapeKit Colombia</h1>
-        <p>Indexador de documentos legislativos PDF - Camara, Senado y mas.</p>
+        <h1>Nómos</h1>
+        <p>Scraping de documentos legales &mdash; indexador de PDFs legislativos (Camara, Senado y mas).</p>
       </div>
     </header>
     <main class="container">
@@ -530,13 +544,13 @@ body {
     </main>
     <footer class="footer">
       <div class="container">
-        <small>&copy; {{ year }} ScrapeKit Colombia &mdash; stevenvo780</small>
+        <small>&copy; {{ year }} Nómos &mdash; por Steven Vallejo</small>
       </div>
     </footer>
     <footer class="footer-ecosystem">
       <div class="container">
         <div class="footer-ecosystem__inner">
-          <span class="footer-ecosystem__label">Parte del ecosistema de Steven Vallejo</span>
+          <span class="footer-ecosystem__label">Parte de <a href="https://www.stevenvallejo.com" target="_blank" rel="noopener" style="color:#43b5a6;text-decoration:none;font-weight:600;">Mouseîon</a> &mdash; por <a href="https://www.stevenvallejo.com" target="_blank" rel="noopener" style="color:rgba(243,236,224,0.72);text-decoration:none;">Steven Vallejo</a></span>
           <ul class="footer-ecosystem__links">
             <li><a href="https://www.stevenvallejo.com/es#filosofia" target="_blank" rel="noopener">Filosofia</a></li>
             <li><a href="https://www.stevenvallejo.com/es#ciencias" target="_blank" rel="noopener">Ciencias</a></li>
