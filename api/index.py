@@ -79,7 +79,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -175,6 +175,22 @@ async def get_document(document_id: str) -> DocumentRead:
     if doc is None:
         raise HTTPException(status_code=404, detail="Documento no encontrado")
     return _doc_to_schema(doc)
+
+
+@app.delete("/api/documents/{document_id}", status_code=204, tags=["documents"])
+async def delete_document(
+    document_id: str,
+    _key: str = Depends(require_api_key),
+) -> None:
+    """
+    Elimina un documento por ID.
+    Requiere cabecera X-API-Key con el valor configurado en SCRAPEKIT_API_KEY.
+    """
+    db = Database(settings)
+    doc = await db.get_document(document_id)
+    if doc is None:
+        raise HTTPException(status_code=404, detail="Documento no encontrado")
+    await db.delete_document(document_id)
 
 
 @app.post("/api/documents", response_model=DocumentRead, tags=["documents"])

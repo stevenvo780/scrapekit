@@ -209,6 +209,15 @@ class Database:
             result = await session.exec(stmt)
             return result.one_or_none()
 
+    async def delete_document(self, document_id: str) -> None:
+        async with AsyncSession(self._engine, expire_on_commit=False) as session:
+            stmt = select(Document).where(Document.document_id == document_id)
+            result = await session.exec(stmt)
+            doc = result.one_or_none()
+            if doc is not None:
+                await session.delete(doc)
+                await session.commit()
+
     async def list_documents(
         self,
         source_key: Optional[str] = None,
