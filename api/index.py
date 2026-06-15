@@ -31,11 +31,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Security
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from fastapi.security.api_key import APIKeyHeader
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader
 from mangum import Mangum
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from lib.adapters import list_adapters, get_adapter, ADAPTERS
 from lib.database import Database, Document, ensure_schema, init_db
@@ -83,6 +84,28 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Agrega cabeceras de seguridad HTTP a todas las respuestas."""
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data:; "
+            "connect-src 'self'; "
+            "frame-ancestors 'none'"
+        )
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Servir archivos estaticos (CSS/JS/favicon) en dev local; en Vercel se sirven desde /public
 if _STATIC_DIR.exists():
