@@ -3,17 +3,97 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Nómos — scraping de documentos legales. Indexador de PDFs legislativos de Colombia y otros paises. Parte de Mouseîon." />
-    <meta property="og:title" content="Nómos — scraping de documentos legales" />
-    <meta property="og:description" content="Indexador de PDFs legislativos de Colombia (Camara, Senado y mas). Parte del ecosistema Mouseîon." />
-    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#0b1417" />
+    <meta name="description" content="{% block meta_description %}Nómos — scraping de documentos legales. Indexador de PDFs legislativos de Colombia y otros países (Cámara, Senado y más). Parte del ecosistema Mouseîon.{% endblock %}" />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="{% block canonical %}https://nomos.stevenvallejo.com/{% endblock %}" />
+
+    <!-- OpenGraph -->
+    <meta property="og:type"        content="website" />
+    <meta property="og:site_name"   content="Mouseîon" />
+    <meta property="og:locale"      content="es_ES" />
+    <meta property="og:title"       content="{% block og_title %}Nómos — scraping de documentos legales · Mouseîon{% endblock %}" />
+    <meta property="og:description" content="{% block og_description %}Indexador de PDFs legislativos de Colombia (Cámara, Senado y más). Motor de búsqueda de texto completo sobre legislación. Parte del ecosistema Mouseîon por Steven Vallejo.{% endblock %}" />
+    <meta property="og:url"         content="{% block og_url %}https://nomos.stevenvallejo.com/{% endblock %}" />
+    <meta property="og:image"       content="https://nomos.stevenvallejo.com/og-image.png" />
+    <meta property="og:image:width"  content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt"   content="Nómos — scraping de documentos legales · Mouseîon" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:title"       content="{% block twitter_title %}Nómos — scraping de documentos legales · Mouseîon{% endblock %}" />
+    <meta name="twitter:description" content="{% block twitter_description %}Indexador de PDFs legislativos de Colombia. Motor de búsqueda de texto completo sobre legislación. Parte del ecosistema Mouseîon.{% endblock %}" />
+    <meta name="twitter:image"       content="https://nomos.stevenvallejo.com/og-image.png" />
+
+    <!-- JSON-LD Structured Data -->
+    {% block jsonld %}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://nomos.stevenvallejo.com/#website",
+          "url": "https://nomos.stevenvallejo.com/",
+          "name": "Nómos",
+          "description": "Scraping de documentos legales — indexador de PDFs legislativos de Colombia y otros países.",
+          "inLanguage": "es",
+          "isPartOf": {
+            "@type": "WebSite",
+            "name": "Mouseîon",
+            "url": "https://www.stevenvallejo.com"
+          },
+          "author": {
+            "@type": "Person",
+            "@id": "https://www.stevenvallejo.com/#person",
+            "name": "Steven Vallejo",
+            "url": "https://www.stevenvallejo.com",
+            "sameAs": [
+              "https://github.com/stevenvo780",
+              "https://www.linkedin.com/in/stevenvo780"
+            ]
+          }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://nomos.stevenvallejo.com/#app",
+          "name": "Nómos",
+          "url": "https://nomos.stevenvallejo.com/",
+          "description": "Scraping de documentos legales — indexador de PDFs legislativos de Colombia (Cámara, Senado y más). Motor de búsqueda de texto completo sobre legislación.",
+          "applicationCategory": "UtilitiesApplication",
+          "operatingSystem": "Web",
+          "inLanguage": "es",
+          "isPartOf": {
+            "@type": "WebSite",
+            "name": "Mouseîon",
+            "url": "https://www.stevenvallejo.com"
+          },
+          "author": {
+            "@type": "Person",
+            "@id": "https://www.stevenvallejo.com/#person",
+            "name": "Steven Vallejo",
+            "url": "https://www.stevenvallejo.com",
+            "sameAs": [
+              "https://github.com/stevenvo780",
+              "https://www.linkedin.com/in/stevenvo780"
+            ]
+          }
+        }
+      ]
+    }
+    </script>
+    {% endblock %}
+
+    <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/icon.svg">
     <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="any">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <title>{% block title %}Nómos — scraping de documentos legales{% endblock %}</title>
+    <title>{% block title %}Nómos — scraping de documentos legales · Mouseîon{% endblock %}</title>
     <style>
 /* =====================================================================
    ScrapeKit Colombia — Brand tokens (light mode) — Cloud Atlas palette
