@@ -148,18 +148,63 @@ def _render(template_name: str, **ctx) -> str:
 # ---------------------------------------------------------------------------
 # Healthcheck
 # ---------------------------------------------------------------------------
+
+# Canonical lemniscata favicon — matches md5 a1a13f1d27b789c0b08e3c49f26c32a6
 _FAVICON_SVG = (
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-    '<circle cx="16" cy="16" r="16" fill="#0F766E"/>'
-    '<text x="16" y="22" font-family="serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#2DD4BF">S</text>'
-    "</svg>"
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Steven Vallejo">'
+    '<defs>'
+    '<linearGradient id="sv-sig" x1="12" y1="16" x2="52" y2="50" gradientUnits="userSpaceOnUse">'
+    '<stop offset="0" stop-color="#e0a85e"/>'
+    '<stop offset="0.35" stop-color="#cf6a3c"/>'
+    '<stop offset="1" stop-color="#43b5a6"/>'
+    '</linearGradient>'
+    '<radialGradient id="sv-cosmos" cx="0.32" cy="0.26" r="0.95">'
+    '<stop offset="0" stop-color="#0f1c20"/>'
+    '<stop offset="0.55" stop-color="#0b1417"/>'
+    '<stop offset="1" stop-color="#091012"/>'
+    '</radialGradient>'
+    '<radialGradient id="sv-core" cx="0.5" cy="0.42" r="0.6">'
+    '<stop offset="0" stop-color="#f0c887"/>'
+    '<stop offset="1" stop-color="#e0a85e"/>'
+    '</radialGradient>'
+    '</defs>'
+    '<rect x="2" y="2" width="60" height="60" rx="15" fill="url(#sv-cosmos)"/>'
+    '<rect x="2.5" y="2.5" width="59" height="59" rx="14.5" fill="none" stroke="#43b5a6" stroke-opacity="0.22" stroke-width="1"/>'
+    '<circle cx="14" cy="14" r="0.9" fill="#f3ece0" fill-opacity="0.55"/>'
+    '<circle cx="50" cy="13" r="0.7" fill="#8d7cc0" fill-opacity="0.75"/>'
+    '<circle cx="51" cy="49" r="0.7" fill="#6fd3c4" fill-opacity="0.55"/>'
+    '<circle cx="13" cy="50" r="0.6" fill="#f3ece0" fill-opacity="0.40"/>'
+    '<path d="M32 32 C 24 22, 14 24, 14 32 C 14 40, 24 42, 32 32 C 40 22, 50 24, 50 32 C 50 40, 40 42, 32 32 Z"'
+    ' fill="none" stroke="url(#sv-sig)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>'
+    '<circle cx="50" cy="32" r="2.6" fill="#6fd3c4"/>'
+    '<circle cx="14" cy="32" r="2.1" fill="#cf6a3c"/>'
+    '<circle cx="32" cy="32" r="3" fill="url(#sv-core)"/>'
+    '<circle cx="32" cy="32" r="6" fill="none" stroke="#f0c887" stroke-opacity="0.30" stroke-width="1"/>'
+    '</svg>'
 )
+
+_PUBLIC_DIR = _ROOT / "public"
 
 
 @app.get("/favicon.svg", include_in_schema=False)
 async def favicon():
-    from fastapi.responses import Response
     return Response(content=_FAVICON_SVG, media_type="image/svg+xml")
+
+
+@app.get("/apple-touch-icon.png", include_in_schema=False)
+async def apple_touch_icon():
+    _path = _PUBLIC_DIR / "apple-touch-icon.png"
+    if _path.exists():
+        return Response(content=_path.read_bytes(), media_type="image/png")
+    return Response(status_code=404)
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon_ico():
+    _path = _PUBLIC_DIR / "favicon.ico"
+    if _path.exists():
+        return Response(content=_path.read_bytes(), media_type="image/x-icon")
+    return Response(status_code=404)
 
 
 @app.get("/health", tags=["meta"])
