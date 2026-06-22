@@ -9,7 +9,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     """
-    Configuracion central de ScrapeKit Colombia.
+    Configuración central de Nómos · Mouseîon.
 
     Env vars leidas (con prefijo SCRAPEKIT_):
       SCRAPEKIT_DATABASE_URL  - Neon pooled URL (runtime)

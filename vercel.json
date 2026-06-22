@@ -12,7 +12,7 @@
   ],
   "routes": [
     {
-      "src": "^/(favicon\\.ico|favicon-32\\.png|apple-touch-icon\\.png|icon-\\d+\\.png|og-image\\.png|images/.*|static/.*|icon\\.svg)$",
+      "src": "^/(favicon\\.ico|favicon-32\\.png|favicon-32x32\\.png|apple-touch-icon\\.png|apple-touch-icon-180x180\\.png|icon-\\d+\\.png|og-image\\.png|images/.*|static/.*|icon\\.svg|site\\.webmanifest)$",
       "dest": "/public/$1",
       "continue": false
     },

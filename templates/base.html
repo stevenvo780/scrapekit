@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es-CO" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,20 +12,23 @@
     <!-- OpenGraph -->
     <meta property="og:type"        content="website" />
     <meta property="og:site_name"   content="Mouseîon" />
-    <meta property="og:locale"      content="es_ES" />
+    <meta property="og:locale"      content="es_CO" />
     <meta property="og:title"       content="{% block og_title %}Nómos — scraping de documentos legales · Mouseîon{% endblock %}" />
     <meta property="og:description" content="{% block og_description %}Indexador de PDFs legislativos de Colombia (Cámara, Senado y más). Motor de búsqueda de texto completo sobre legislación. Parte del ecosistema Mouseîon por Steven Vallejo.{% endblock %}" />
     <meta property="og:url"         content="{% block og_url %}https://nomos.stevenvallejo.com/{% endblock %}" />
-    <meta property="og:image"       content="https://nomos.stevenvallejo.com/og-image.png" />
-    <meta property="og:image:width"  content="2400" />
-    <meta property="og:image:height" content="1260" />
-    <meta property="og:image:alt"   content="Nómos — scraping de documentos legales · Mouseîon" />
+    <meta property="og:image"            content="https://nomos.stevenvallejo.com/og-image.png" />
+    <meta property="og:image:type"       content="image/png" />
+    <meta property="og:image:secure_url" content="https://nomos.stevenvallejo.com/og-image.png" />
+    <meta property="og:image:width"      content="1200" />
+    <meta property="og:image:height"     content="630" />
+    <meta property="og:image:alt"        content="Nómos — scraping de documentos legales · Mouseîon" />
 
     <!-- Twitter / X -->
     <meta name="twitter:card"        content="summary_large_image" />
     <meta name="twitter:title"       content="{% block twitter_title %}Nómos — scraping de documentos legales · Mouseîon{% endblock %}" />
     <meta name="twitter:description" content="{% block twitter_description %}Indexador de PDFs legislativos de Colombia. Motor de búsqueda de texto completo sobre legislación. Parte del ecosistema Mouseîon.{% endblock %}" />
     <meta name="twitter:image"       content="https://nomos.stevenvallejo.com/og-image.png" />
+    <meta name="twitter:site"        content="@stevenvo780" />
 
     <!-- JSON-LD Structured Data -->
     {% block jsonld %}
@@ -39,7 +42,15 @@
           "url": "https://nomos.stevenvallejo.com/",
           "name": "Nómos",
           "description": "Scraping de documentos legales — indexador de PDFs legislativos de Colombia y otros países.",
-          "inLanguage": "es",
+          "inLanguage": "es-CO",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://nomos.stevenvallejo.com/api/search?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          },
           "isPartOf": {
             "@type": "WebSite",
             "name": "Mouseîon",
@@ -64,7 +75,9 @@
           "description": "Scraping de documentos legales — indexador de PDFs legislativos de Colombia (Cámara, Senado y más). Motor de búsqueda de texto completo sobre legislación.",
           "applicationCategory": "UtilitiesApplication",
           "operatingSystem": "Web",
-          "inLanguage": "es",
+          "inLanguage": "es-CO",
+          "datePublished": "2024-01-01",
+          "dateModified": "2026-06-01",
           "isPartOf": {
             "@type": "WebSite",
             "name": "Mouseîon",
@@ -88,18 +101,20 @@
 
     <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/icon.svg">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="16x16 32x32 48x48 64x64">
+    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
     <link rel="icon" type="image/png" href="/icon-512.png" sizes="512x512">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
     <link rel="manifest" href="/site.webmanifest">
+    <!-- Preload above-the-fold logo -->
+    <link rel="preload" as="image" href="/images/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <title>{% block title %}Nómos — scraping de documentos legales · Mouseîon{% endblock %}</title>
     <style>
 /* =====================================================================
-   ScrapeKit Colombia — Brand tokens (light mode) — Cloud Atlas palette
+   Nómos · Mouseîon — Brand tokens (light mode) — Cloud Atlas palette
    ===================================================================== */
 [data-theme="light"] {
   --bg:             #FBFAF6;
@@ -115,15 +130,59 @@
   --accent-strong:  #7a4e0a;
   --on-accent:      #FFFFFF;
   --link:           #2b7a70;
-  --ring:           #43b5a6;
+  --ring:           #1a5c54;
   --success:        #2b7a70;
   --warning:        #92610A;
   --danger:         #B42318;
 }
 
 /* =====================================================================
-   ScrapeKit Colombia — main.css
-   Modo: light (data-theme="light" en <html>)
+   Nómos · Mouseîon — Dark mode tokens
+   ===================================================================== */
+[data-theme="dark"] {
+  --bg:             #0b1417;
+  --surface:        #131e22;
+  --surface-2:      #1a2a30;
+  --border:         #2a3d44;
+  --text:           #e8e0d4;
+  --text-muted:     #8fa3a8;
+  --primary:        #43b5a6;
+  --primary-strong: #3aa396;
+  --on-primary:     #0b1417;
+  --accent:         #e0a85e;
+  --accent-strong:  #cf6a3c;
+  --on-accent:      #0b1417;
+  --link:           #43b5a6;
+  --ring:           #43b5a6;
+  --success:        #43b5a6;
+  --warning:        #e0a85e;
+  --danger:         #f87171;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:             #0b1417;
+    --surface:        #131e22;
+    --surface-2:      #1a2a30;
+    --border:         #2a3d44;
+    --text:           #e8e0d4;
+    --text-muted:     #8fa3a8;
+    --primary:        #43b5a6;
+    --primary-strong: #3aa396;
+    --on-primary:     #0b1417;
+    --accent:         #e0a85e;
+    --accent-strong:  #cf6a3c;
+    --on-accent:      #0b1417;
+    --link:           #43b5a6;
+    --ring:           #43b5a6;
+    --success:        #43b5a6;
+    --warning:        #e0a85e;
+    --danger:         #f87171;
+  }
+}
+
+/* =====================================================================
+   Nómos · Mouseîon — main.css
    Paleta: teal primario, dorado acento — brand-tokens canonicos.
    ===================================================================== */
 
@@ -195,10 +254,10 @@ body {
   font-size: 0.68rem;
   font-weight: 500;
   font-family: "JetBrains Mono", monospace;
-  color: rgba(67,181,166,0.72);
+  color: #43b5a6;
   letter-spacing: 0.04em;
   margin-left: 0.15rem;
-  -webkit-text-fill-color: rgba(67,181,166,0.72);
+  -webkit-text-fill-color: #43b5a6;
 }
 
 /* --- Header ------------------------------------------------------------ */
@@ -353,7 +412,7 @@ body {
   font-size: 1.02rem;
   font-weight: 600;
   color: var(--link);
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 .search-result__title:hover {
@@ -580,8 +639,8 @@ body {
   <body>
     <div class="wordmark-bar">
       <div class="container">
-        <a class="wordmark-link" href="https://www.stevenvallejo.com" target="_blank" rel="noopener">
-          <img src="/images/logo.png" alt="Nómos" style="height: 26px; width: auto; flex-shrink: 0;">
+        <a class="wordmark-link" href="https://www.stevenvallejo.com" target="_blank" rel="noopener" aria-label="Mouseîon — catálogo de Steven Vallejo">
+          <img src="/images/logo.png" alt="" aria-hidden="true" style="height: 26px; width: auto; flex-shrink: 0;">
           <span class="wordmark-tag">Mouseîon</span>
         </a>
       </div>
@@ -589,7 +648,7 @@ body {
     <header class="header">
       <div class="container">
         <h1>Nómos</h1>
-        <p>Scraping de documentos legales &mdash; indexador de PDFs legislativos (Camara, Senado y mas).</p>
+        <p>Scraping de documentos legales &mdash; indexador de PDFs legislativos (Cámara, Senado y más).</p>
       </div>
     </header>
     <main class="container">
@@ -605,13 +664,13 @@ body {
         <div class="footer-ecosystem__inner">
           <span class="footer-ecosystem__label">Parte de <a href="https://www.stevenvallejo.com" target="_blank" rel="noopener" style="color:#43b5a6;text-decoration:none;font-weight:600;">Mouseîon</a> &mdash; por <a href="https://www.stevenvallejo.com" target="_blank" rel="noopener" style="color:rgba(243,236,224,0.72);text-decoration:none;">Steven Vallejo</a></span>
           <ul class="footer-ecosystem__links">
-            <li><a href="https://www.stevenvallejo.com/es#filosofia" target="_blank" rel="noopener">Filosofia</a></li>
+            <li><a href="https://www.stevenvallejo.com/es#filosofia" target="_blank" rel="noopener">Filosofía</a></li>
             <li><a href="https://www.stevenvallejo.com/es#ciencias" target="_blank" rel="noopener">Ciencias</a></li>
-            <li><a href="https://www.stevenvallejo.com/es#informatica" target="_blank" rel="noopener">Informatica</a></li>
-            <li><a href="https://www.stevenvallejo.com/es#ingenieria" target="_blank" rel="noopener">Ingenieria</a></li>
-            <li><a href="https://ergon.stevenvallejo.com" target="_blank" rel="noopener">Ergon</a></li>
-            <li><a href="https://chronos.stevenvallejo.com" target="_blank" rel="noopener">Chronos</a></li>
-            <li><a href="https://apotheke.stevenvallejo.com" target="_blank" rel="noopener">Apotheke</a></li>
+            <li><a href="https://www.stevenvallejo.com/es#informatica" target="_blank" rel="noopener">Informática</a></li>
+            <li><a href="https://www.stevenvallejo.com/es#ingenieria" target="_blank" rel="noopener">Ingeniería</a></li>
+            <li><a href="https://ergon.stevenvallejo.com" target="_blank" rel="noopener">Érgon</a></li>
+            <li><a href="https://chronos.stevenvallejo.com" target="_blank" rel="noopener">Chrónos</a></li>
+            <li><a href="https://apotheke.stevenvallejo.com" target="_blank" rel="noopener">Apothḗke</a></li>
           </ul>
         </div>
       </div>

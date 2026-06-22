@@ -59,7 +59,7 @@
 <section class="card">
   <h2>Documentos indexados</h2>
   <p id="documents-empty" {% if documents %}style="display:none"{% endif %}>
-    Aun no hay documentos indexados.
+    Aún no hay documentos indexados.
   </p>
   <div class="table-container">
     <table class="table" id="documents-table" {% if not documents %}style="display:none"{% endif %}>
@@ -67,9 +67,9 @@
         <tr>
           <th>ID</th>
           <th>Fuente</th>
-          <th>Pais</th>
+          <th>País</th>
           <th>Archivo</th>
-          <th>Paginas</th>
+          <th>Páginas</th>
           <th>Procesado</th>
           <th></th>
         </tr>
@@ -253,7 +253,7 @@ function renderSearchResults(results, query) {
       `${result.country} - ${result.institution}`,
       formatDate(result.processed_at),
       `${result.matches} coincidencia${result.matches === 1 ? "" : "s"}`,
-      `${result.total_pages} paginas`,
+      `${result.total_pages} páginas`,
     ];
     metaTexts.forEach((text) => {
       const span = document.createElement("span");

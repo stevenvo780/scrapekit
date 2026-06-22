@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 class ScrapekitError(Exception):
-    """Base para todos los errores de ScrapeKit."""
+    """Base para todos los errores de Nómos."""
 
 
 class DocumentNotFoundError(ScrapekitError):
