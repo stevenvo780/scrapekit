@@ -12,6 +12,12 @@
   ],
   "routes": [
     {
+      "src": "^/(favicon\\.ico|favicon-32\\.png|apple-touch-icon\\.png|icon-\\d+\\.png|og-image\\.png|images/.*|static/.*|icon\\.svg)$",
+      "dest": "/public/$1",
+      "continue": false
+    },
+    { "handle": "filesystem" },
+    {
       "src": "/(.*)",
       "dest": "/api/index.py"
     }
