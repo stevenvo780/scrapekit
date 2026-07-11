@@ -20,15 +20,18 @@
         placeholder="Ej. 234993"
         required
       />
-      <button type="submit">Procesar</button>
+      <button type="submit">Indexar documento</button>
     </div>
-    <label for="api-key-input">API Key</label>
+    <label for="api-key-input">API Key <span aria-label="requerido">*</span></label>
     <input
       id="api-key-input"
       type="password"
       placeholder="X-API-Key"
+      required
+      aria-required="true"
+      aria-describedby="api-key-help"
     />
-    <p class="help">Introduce el ID del documento y la API Key para indexarlo.</p>
+    <p id="api-key-help" class="help">API Key requerida para autenticación. Contacta al administrador para solicitarla.</p>
     <p id="form-status" class="status"></p>
   </form>
 </section>
@@ -48,6 +51,8 @@
       id="search-input"
       type="search"
       placeholder="Ej. presupuesto nacional"
+      minlength="2"
+      maxlength="200"
       autocomplete="off"
     />
     <p class="help">Escribe al menos dos caracteres para buscar en todos los documentos indexados.</p>
@@ -63,6 +68,7 @@
   </p>
   <div class="table-container">
     <table class="table" id="documents-table" {% if not documents %}style="display:none"{% endif %}>
+      <caption>Documentos indexados</caption>
       <thead>
         <tr>
           <th>ID</th>
@@ -84,7 +90,7 @@
           <td>{{ doc.total_pages }}</td>
           <td>{{ doc.processed_at.strftime('%Y-%m-%d %H:%M') }}</td>
           <td>
-            <a class="button-link" href="/document/{{ doc.document_id }}">Ver</a>
+            <a class="button-link" href="/document/{{ doc.document_id|urlencode }}">Ver</a>
           </td>
         </tr>
         {% endfor %}
@@ -303,7 +309,7 @@ function handleSearchInput(event) {
   const value = event.target.value.trim();
   if (searchTimeoutId) { clearTimeout(searchTimeoutId); searchTimeoutId = null; }
   if (!value) { clearSearchResults(""); return; }
-  if (value.length < 2) { clearSearchResults("Escribe al menos dos caracteres."); return; }
+  if (value.length < 2) { clearSearchResults("Mínimo 2 caracteres. Sigue escribiendo..."); return; }
   searchTimeoutId = setTimeout(() => performSearch(value), 300);
 }
 

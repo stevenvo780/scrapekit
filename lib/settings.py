@@ -29,8 +29,8 @@ class Settings(BaseSettings):
         description="Cadena de conexion directa (sin pool) para migraciones DDL.",
     )
     api_key: str = Field(
-        default="dev-insecure-key",
-        description="API key requerida en cabecera X-API-Key para endpoints de escritura.",
+        default="",
+        description="API key requerida en cabecera X-API-Key para endpoints de escritura. Debe configurarse via SCRAPEKIT_API_KEY en produccion.",
     )
     default_source: str = Field(
         default="colombia_camara",

@@ -20,8 +20,10 @@ NOTA sobre indexacion autonoma:
 
 from __future__ import annotations
 
+import hmac
 import os
 import sys
+from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
@@ -63,9 +65,45 @@ api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 def require_api_key(api_key: Optional[str] = Security(api_key_header)) -> str:
-    if not api_key or api_key != settings.api_key:
+    if not api_key or not hmac.compare_digest(api_key, settings.api_key):
         raise HTTPException(status_code=401, detail="X-API-Key invalida o ausente")
     return api_key
+
+
+# ---------------------------------------------------------------------------
+# Lifespan Handler (reemplaza deprecated @app.on_event)
+# ---------------------------------------------------------------------------
+_db_initialized = False
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Handle app startup and shutdown events using lifespan context manager."""
+    # Startup
+    global _db_initialized
+    import logging
+    logger = logging.getLogger("scrapekit")
+
+    # Validar que API key no esté vacía ni sea el default inseguro
+    if not settings.api_key or settings.api_key == "dev-insecure-key":
+        logger.warning(
+            "⚠️ SCRAPEKIT_API_KEY no configurada o es insegura. "
+            "Endpoints de escritura (POST/DELETE) requieren X-API-Key. "
+            "En produccion, configura SCRAPEKIT_API_KEY env var."
+        )
+
+    if not _db_initialized:
+        try:
+            await init_db(settings)
+            _db_initialized = True
+        except Exception as exc:
+            # Log but don't crash startup — read-only endpoints may still work
+            logger.warning("DB init skipped: %s", exc)
+
+    yield  # App runs here
+
+    # Shutdown (optional cleanup can go here)
+    pass
 
 
 # ---------------------------------------------------------------------------
@@ -75,14 +113,15 @@ app = FastAPI(
     title="Nómos",
     description="Scraping de documentos legales — API para descargar e indexar PDFs legislativos de Colombia y otros paises.",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://nomos.stevenvallejo.com"],
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "DELETE"],
+    allow_headers=["Content-Type", "X-API-Key"],
 )
 
 
@@ -95,11 +134,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline'; "
+            "script-src 'self'; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com; "
             "img-src 'self' data:; "
-            "connect-src 'self'; "
+            "connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; "
             "frame-ancestors 'none'"
         )
         return response
@@ -113,24 +152,6 @@ if _STATIC_DIR.exists():
 
 
 # ---------------------------------------------------------------------------
-# Startup: crear tablas si no existen.
-# En Vercel (serverless) el startup corre en cada cold-start pero la conexion
-# falla si hay error de URL, asi que usamos un flag para evitar repeticion.
-# ---------------------------------------------------------------------------
-_db_initialized = False
-
-
-@app.on_event("startup")
-async def startup_event() -> None:
-    global _db_initialized
-    if not _db_initialized:
-        try:
-            await init_db(settings)
-            _db_initialized = True
-        except Exception as exc:
-            # Log but don't crash startup — read-only endpoints may still work
-            import logging
-            logging.getLogger("scrapekit").warning("DB init skipped: %s", exc)
 
 
 # ---------------------------------------------------------------------------
@@ -303,10 +324,14 @@ async def process_document(
 # ---------------------------------------------------------------------------
 @app.get("/api/search", response_model=List[SearchHit], tags=["search"])
 async def search_documents(
-    q: str = Query(..., min_length=1, description="Texto a buscar"),
+    q: str = Query(..., min_length=1, max_length=200, description="Texto a buscar (máximo 200 caracteres)"),
     source: Optional[str] = Query(None, description="Filtrar por clave de fuente"),
     limit: int = Query(20, ge=1, le=50),
 ) -> List[SearchHit]:
+    # Validar que source es una clave válida si se proporciona
+    if source and source not in ADAPTERS:
+        raise HTTPException(status_code=400, detail=f"Fuente inválida: {source}. Fuentes válidas: {', '.join(ADAPTERS.keys())}")
+
     db = Database(settings)
     results = await db.search_documents(q, source_key=source, limit=limit)
     return [
@@ -377,7 +402,8 @@ _SITEMAP_FOOTER = "</urlset>\n"
 @app.get("/sitemap.xml", include_in_schema=False)
 async def sitemap_xml() -> Response:
     db = Database(settings)
-    documents = await db.list_documents(limit=1000)
+    # Usar método optimizado que NO carga plain_text para evitar OOM
+    documents = await db.list_documents_for_sitemap(limit=1000)
 
     entries = [
         "  <url>\n"
@@ -388,6 +414,10 @@ async def sitemap_xml() -> Response:
     ]
 
     for doc in documents:
+        # Null-check: saltar documentos sin processed_at
+        if doc.processed_at is None:
+            continue
+
         lastmod = doc.processed_at.strftime("%Y-%m-%d")
         entries.append(
             f"  <url>\n"

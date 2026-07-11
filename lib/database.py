@@ -6,6 +6,7 @@ from typing import AsyncIterator, List, Optional
 
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import NullPool
+from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlmodel import Field, SQLModel, select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -179,28 +180,37 @@ class Database:
         from .adapters import get_adapter
         adapter = get_adapter(source_key)
         async with AsyncSession(self._engine, expire_on_commit=False) as session:
+            # Preparar datos para insert/upsert
+            data = {
+                "document_id": report.downloaded.document_id,
+                "source_key": source_key,
+                "filename": report.downloaded.filename,
+                "source_url": report.downloaded.source_url,
+                "checksum_sha256": report.downloaded.checksum_sha256,
+                "content_length": report.downloaded.content_length,
+                "downloaded_at": self._naive_utc(report.downloaded.downloaded_at),
+                "processed_at": self._naive_utc(report.extraction.processed_at),
+                "plain_text": report.extraction.plain_text,
+                "heading_count": len(report.extraction.headings),
+                "total_pages": int(report.extraction.metadata.get("total_pages", "0")),
+                "country": adapter.country,
+                "institution": adapter.institution,
+            }
+
+            # Usar ON CONFLICT DO UPDATE para atomicity: si dos requests concurren,
+            # Postgres garantiza que solo uno hará INSERT y otro hará UPDATE.
+            stmt = postgres_insert(Document).values(**data)
+            stmt = stmt.on_conflict_do_update(
+                index_elements=["document_id"],
+                set_={col: stmt.excluded[col] for col in data.keys() if col != "document_id"}
+            )
+            await session.exec(stmt)
+            await session.commit()
+
+            # Recargar el documento para retornar la versión actualizada con ID autogenerado
             stmt = select(Document).where(Document.document_id == report.downloaded.document_id)
             result = await session.exec(stmt)
             doc = result.one_or_none()
-            if doc is None:
-                doc = Document(document_id=report.downloaded.document_id, source_key=source_key)
-            doc.filename = report.downloaded.filename
-            doc.source_url = report.downloaded.source_url
-            doc.checksum_sha256 = report.downloaded.checksum_sha256
-            doc.content_length = report.downloaded.content_length
-            doc.downloaded_at = self._naive_utc(report.downloaded.downloaded_at)
-            doc.processed_at = self._naive_utc(report.extraction.processed_at)
-            doc.plain_text = report.extraction.plain_text
-            doc.heading_count = len(report.extraction.headings)
-            doc.total_pages = int(report.extraction.metadata.get("total_pages", "0"))
-            doc.country = adapter.country
-            doc.institution = adapter.institution
-            session.add(doc)
-            await session.commit()
-            # Con expire_on_commit=False los atributos siguen disponibles tras commit;
-            # un refresh explicito recarga la fila (incluye id autogenerado) de forma
-            # segura mientras la sesion aun esta abierta.
-            await session.refresh(doc)
             return doc
 
     async def get_document(self, document_id: str) -> Optional[Document]:
@@ -215,7 +225,7 @@ class Database:
             result = await session.exec(stmt)
             doc = result.one_or_none()
             if doc is not None:
-                await session.delete(doc)
+                session.delete(doc)
                 await session.commit()
 
     async def list_documents(
@@ -231,6 +241,29 @@ class Database:
             stmt = stmt.order_by(Document.processed_at.desc()).limit(limit).offset(offset)
             result = await session.exec(stmt)
             return list(result.all())
+
+    async def list_documents_for_sitemap(self, limit: int = 1000) -> List[Document]:
+        """Lista documentos solo con campos necesarios para sitemap (sin plain_text) para optimizar memoria."""
+        async with AsyncSession(self._engine, expire_on_commit=False) as session:
+            # Seleccionar solo las columnas necesarias para evitar cargar plain_text (puede ser 5MB+ por doc)
+            stmt = (
+                select(Document.id, Document.document_id, Document.processed_at)
+                .where(Document.processed_at.isnot(None))
+                .order_by(Document.processed_at.desc())
+                .limit(limit)
+            )
+            result = await session.exec(stmt)
+            rows = list(result.all())
+
+            # Retornar objetos Document stub con solo los campos necesarios
+            docs = []
+            for row in rows:
+                doc = Document()
+                doc.id = row[0]
+                doc.document_id = row[1]
+                doc.processed_at = row[2]
+                docs.append(doc)
+            return docs
 
     async def search_documents(
         self,

@@ -6,13 +6,14 @@ from typing import Optional
 
 import httpx
 
-from .adapters import SourceAdapter, get_adapter
+from .adapters import SourceAdapter
 from .exceptions import DocumentNotFoundError, DownloadError, InvalidContentTypeError
 from .models import DownloadedDocument
 from .utils import compute_sha256, ensure_pdf_extension, slugify
 
 PDF_MIME = "application/pdf"
 USER_AGENT = "ScrapeKit-Colombia/1.0 (+https://github.com/stevenvo780)"
+MAX_DOWNLOAD_SIZE = 50 * 1024 * 1024  # 50 MB limit per PDF
 
 
 class DocumentDownloader:
@@ -26,34 +27,72 @@ class DocumentDownloader:
         async with httpx.AsyncClient(
             timeout=self.timeout,
             follow_redirects=True,
+            max_redirects=3,
             headers={"User-Agent": USER_AGENT},
         ) as client:
             try:
-                response = await client.get(url)
+                # Pre-check Content-Length before streaming
+                head_response = await client.head(url)
+                if head_response.status_code >= 400:
+                    if head_response.status_code == 404:
+                        raise DocumentNotFoundError(f"Documento {document_id} no encontrado en {adapter.label}")
+                    raise DownloadError(
+                        f"Respuesta {head_response.status_code} al descargar {document_id} desde {adapter.label}"
+                    )
+
+                content_length_str = head_response.headers.get("Content-Length")
+                if content_length_str:
+                    try:
+                        content_length = int(content_length_str)
+                        if content_length > MAX_DOWNLOAD_SIZE:
+                            raise DownloadError(
+                                f"Documento {document_id} supera el tamaño máximo ({content_length} > {MAX_DOWNLOAD_SIZE} bytes)"
+                            )
+                    except (ValueError, TypeError):
+                        pass  # Continue; validar en stream si falla
+
+                # Stream el contenido con límite de tamaño
+                raw_bytes = bytearray()
+                async with client.stream("GET", url) as response:
+                    if response.status_code == 404:
+                        raise DocumentNotFoundError(f"Documento {document_id} no encontrado en {adapter.label}")
+                    if response.status_code >= 400:
+                        raise DownloadError(
+                            f"Respuesta {response.status_code} al descargar {document_id} desde {adapter.label}"
+                        )
+
+                    content_type = response.headers.get("Content-Type", "").split(";")[0].strip().lower()
+                    if content_type != PDF_MIME:
+                        raise InvalidContentTypeError(
+                            f"Se esperaba PDF para {document_id}, se recibio '{content_type or 'desconocido'}'"
+                        )
+
+                    async for chunk in response.aiter_bytes(chunk_size=8192):
+                        raw_bytes.extend(chunk)
+                        if len(raw_bytes) > MAX_DOWNLOAD_SIZE:
+                            raise DownloadError(
+                                f"Documento {document_id} supera el tamaño máximo durante descarga"
+                            )
+
+                raw = bytes(raw_bytes)
+                checksum = compute_sha256(raw)
             except httpx.RequestError as exc:
                 raise DownloadError(f"Error de red al descargar {document_id}: {exc}") from exc
-
-        if response.status_code == 404:
-            raise DocumentNotFoundError(f"Documento {document_id} no encontrado en {adapter.label}")
-        if response.status_code >= 400:
-            raise DownloadError(
-                f"Respuesta {response.status_code} al descargar {document_id} desde {adapter.label}"
-            )
-
-        content_type = response.headers.get("Content-Type", "").split(";")[0].strip().lower()
-        if content_type != PDF_MIME:
-            raise InvalidContentTypeError(
-                f"Se esperaba PDF para {document_id}, se recibio '{content_type or 'desconocido'}'"
-            )
-
-        raw = response.content
-        checksum = compute_sha256(raw)
 
         disposition = response.headers.get("Content-Disposition", "")
         suggested: Optional[str] = None
         if "filename=" in disposition:
             suggested = disposition.split("filename=")[-1].strip().strip('"')
-        filename = slugify(suggested, allow_dot=True) if suggested else f"{adapter.key}-{slugify(document_id)}.pdf"
+
+        # Determinar filename con fallbacks
+        if suggested:
+            slug = slugify(suggested, allow_dot=True)
+            if not slug:  # Fallback si slugify retorna vacío
+                slug = f"{adapter.key}-doc-{document_id[:8]}"
+            filename = slug
+        else:
+            filename = f"{adapter.key}-{slugify(document_id)}.pdf"
+
         filename = ensure_pdf_extension(filename)
 
         content_length = int(response.headers.get("Content-Length", len(raw)))

@@ -13,9 +13,9 @@
   "@context": "https://schema.org",
   "@type": "DigitalDocument",
   "@id": "https://nomos.stevenvallejo.com/document/{{ document.document_id }}",
-  "name": "{{ document.filename }}",
+  "name": {{ document.filename|tojson }},
   "url": "https://nomos.stevenvallejo.com/document/{{ document.document_id }}",
-  "identifier": "{{ document.document_id }}",
+  "identifier": {{ document.document_id|tojson }},
   "inLanguage": "es",
   "isPartOf": {
     "@type": "WebSite",
@@ -24,7 +24,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "{{ document.institution }}"
+    "name": {{ document.institution|tojson }}
   }
 }
 </script>
@@ -81,9 +81,13 @@
 <section class="card">
   <h2>Contenido</h2>
   <article class="document-content">
-    {% for line in document.plain_text.split("\n") %}
-    <p>{{ line }}</p>
-    {% endfor %}
+    {% if document.plain_text %}
+      {% for line in document.plain_text.split("\n") %}
+      <p>{{ line }}</p>
+      {% endfor %}
+    {% else %}
+      <p>No hay contenido disponible para este documento.</p>
+    {% endif %}
   </article>
 </section>
 {% endblock %}
