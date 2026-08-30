@@ -63,9 +63,16 @@
 
 <section class="card">
   <h2>Documentos indexados</h2>
+  {% if db_unavailable %}
+  <p id="documents-unavailable" class="status" role="status">
+    El índice no está disponible en este momento: la base de datos no acepta
+    conexiones. Es temporal — volvé a intentar en unos minutos.
+  </p>
+  {% else %}
   <p id="documents-empty" {% if documents %}style="display:none"{% endif %}>
     Aún no hay documentos indexados.
   </p>
+  {% endif %}
   <div class="table-container">
     <table class="table" id="documents-table" {% if not documents %}style="display:none"{% endif %}>
       <caption>Documentos indexados</caption>

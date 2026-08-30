@@ -163,6 +163,15 @@ class Database:
         async with AsyncSession(self._engine, expire_on_commit=False) as session:
             yield session
 
+    async def ping(self) -> None:
+        """Comprueba que la base responde. Lanza si no.
+
+        `/health` devolvia siempre {"status": "ok"} sin tocar la base: durante la
+        caida por cuota de Neon informo salud mientras la home daba 500.
+        """
+        async with AsyncSession(self._engine, expire_on_commit=False) as session:
+            await session.exec(select(1))
+
     @staticmethod
     def _naive_utc(dt: datetime) -> datetime:
         """Garantiza datetime tz-naive en UTC.
