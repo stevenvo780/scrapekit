@@ -23,3 +23,11 @@ class EmptyDocumentError(ScrapekitError):
 
 class ParsingError(ScrapekitError):
     """Fallo al parsear el PDF."""
+
+
+class DatabaseUnavailableError(ScrapekitError):
+    """La base de datos no acepta conexiones (cuota agotada, caida, red).
+
+    Es TEMPORAL: se traduce a 503 + Retry-After, nunca a 500. Un 500 le dice al
+    rastreador que el fallo es nuestro y permanente; un 503 le dice que vuelva.
+    """
