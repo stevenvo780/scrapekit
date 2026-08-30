@@ -109,3 +109,29 @@ def test_camino_sano_no_degrada(sana):
 
     assert sana.get("/api/documents").status_code == 200
     assert sana.get("/sitemap.xml").status_code == 200
+
+
+def test_error_de_cuota_de_asyncpg_tambien_degrada(caida, monkeypatch):
+    """El fallo REAL de produccion no fue "conexion rechazada": fue
+    `asyncpg.InsufficientResourcesError` (cuota de computo de Neon agotada).
+
+    La primera version registraba el manejador con decoradores sueltos y se
+    dejo fuera las clases de asyncpg: home, health y sitemap degradaban bien
+    porque tienen su propio try/except, y `/api/documents` seguia devolviendo
+    500. Lo detecto produccion, no esta bateria — de ahi este caso.
+    """
+    from asyncpg import exceptions as apg
+
+    import lib.database as dbmod
+
+    async def cuota_agotada(*_a, **_k):
+        raise apg.InsufficientResourcesError(
+            "Your account or project has exceeded the compute time quota."
+        )
+
+    monkeypatch.setattr(dbmod.Database, "list_documents", cuota_agotada)
+
+    r = caida.get("/api/documents")
+    assert r.status_code == 503, r.text
+    assert r.json()["error"] == "database_unavailable"
+    assert r.headers["retry-after"] == "300"
