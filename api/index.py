@@ -232,17 +232,20 @@ DB_UNAVAILABLE_ERRORS = (
 ) + _ASYNCPG_UNAVAILABLE
 
 
-@app.exception_handler(OperationalError)
-@app.exception_handler(InterfaceError)
-@app.exception_handler(DBAPIError)
-@app.exception_handler(SQLTimeoutError)
-@app.exception_handler(OSError)
 async def _database_unavailable_handler(request: Request, exc: Exception) -> JSONResponse:
     return JSONResponse(
         status_code=503,
         content={"detail": _DB_DOWN_DETAIL, "error": "database_unavailable"},
         headers={"Retry-After": _RETRY_AFTER},
     )
+
+
+# Se registra recorriendo la tupla, no con decoradores sueltos: con decoradores
+# se olvidaron las de asyncpg y `/api/documents` siguio devolviendo 500 en
+# produccion mientras home, health y sitemap ya degradaban bien — esos tres
+# tienen su propio try/except y por eso tapaban el agujero.
+for _exc_cls in DB_UNAVAILABLE_ERRORS:
+    app.add_exception_handler(_exc_cls, _database_unavailable_handler)
 
 
 @app.get("/icon.svg", include_in_schema=False)
